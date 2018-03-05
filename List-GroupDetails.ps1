@@ -18,6 +18,7 @@ $page = 1
 $raw = @()
 $groups = @()
 
+$headers = Get-BaererToken
 # first we need ot discover the groups
 
 do
@@ -56,10 +57,9 @@ foreach($group in $groups)
     $groupinfo += $Object    
 }
 
-$exportname = ".\Groups\groupadmins.csv"
+$exportname = "..\Exports\Groups\groupadmins.csv"
 $groupinfo |Export-Csv $exportname -NoTypeInformation 
 
-exit
 foreach($group in $groups)
 {
     $GroupId = $group.id
@@ -79,11 +79,7 @@ foreach($group in $groups)
     }	
 	While ($Xml.response.users.user.count -gt 0)
     $xml.response |gm
-    $exportname = ".\Groups\"+$group.full_name.replace(" ","_")+".csv"
+    $exportname = "..\Exports\Groups\"+$group.full_name.replace(" ","_")+".csv"
 
     $YammerGroups | Select-Object id,full-name,email |Export-Csv $exportname -NoTypeInformation 
 }
-
-
-
-
