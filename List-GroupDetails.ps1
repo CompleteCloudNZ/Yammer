@@ -57,7 +57,7 @@ foreach($group in $groups)
     $groupinfo += $Object    
 }
 
-$exportname = "..\Exports\Groups\groupadmins.csv"
+$exportname = "..\Exports\groupadmins.csv"
 $groupinfo |Export-Csv $exportname -NoTypeInformation 
 
 foreach($group in $groups)
@@ -79,7 +79,7 @@ foreach($group in $groups)
     }	
 	While ($Xml.response.users.user.count -gt 0)
     $xml.response |gm
-    $exportname = "..\Exports\Groups\"+$group.full_name.replace(" ","_")+".csv"
+    $exportname = "..\Exports\"+$group.full_name.replace(" ","_")+".csv"
 
     $YammerGroups | Select-Object id,full-name,email |Export-Csv $exportname -NoTypeInformation 
 }

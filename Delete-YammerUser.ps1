@@ -1,9 +1,9 @@
-. .\Yammer-Token.ps1
+. ..\Yammer-Token.ps1
 $yammerBaseUrl = "https://www.yammer.com/api/v1"
 
-# https://www.yammer.com/api/v1/users/1644820099
+# https://www.yammer.com/api/v1/users/1647566075
 
-$userId = "1644820099"
+$userId = "1647566075"
 
 Function Get-BaererToken() {
     $headers = @{ Authorization=("Bearer " + $baererToken) }
@@ -25,4 +25,5 @@ $webRequest = Invoke-WebRequest -Uri $urlToCall -Method Get -Headers $headers
 $results = $webRequest.Content | ConvertFrom-Json
 $results
 
-# $webRequest = Invoke-WebRequest -Uri $urlToCall -Method Delete -Headers $headers
+
+#$webRequest = Invoke-WebRequest -Uri $urlToCall -Method Delete -Headers $headers
