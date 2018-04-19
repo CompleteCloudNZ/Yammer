@@ -11,10 +11,6 @@ Function Get-BaererToken() {
 }
 
 $headers = Get-BaererToken
-# $urlToCall = "$($yammerBaseUrl)/users/$($userId)?delete=true"
-# Write-Host $urlToCall
-# $webRequest = Invoke-WebRequest –Uri $urlToCall –Method Delete -Headers $headers
-# $webRequest.StatusCode
 
 $urlToCall = "$($yammerBaseUrl)/users/$($userId).json"
 
@@ -24,6 +20,3 @@ $webRequest = Invoke-WebRequest -Uri $urlToCall -Method Get -Headers $headers
 
 $results = $webRequest.Content | ConvertFrom-Json
 $results
-
-
-#$webRequest = Invoke-WebRequest -Uri $urlToCall -Method Delete -Headers $headers
