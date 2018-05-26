@@ -15,11 +15,47 @@ $groupinfo = @()
 $headers = Get-BaererToken
 # first we need ot discover the groups
 
-$groups = Get-Content .\groups.txt
+$migrategroups = Get-Content .\groups.txt
 
-foreach($group in $groups)
+$page = 1
+$raw = @()
+$groups = @()
+$groupinfo = @()
+
+$headers = Get-BaererToken
+# first we need ot discover the groups
+
+do
 {
-    $GroupId = $group
+    $uri = "$($yammerBaseUrl)/groups.json?page="+$page
+    $webrequest = Invoke-WebRequest -Uri $uri -Method Get -Headers $headers
+    
+    $raw = $webrequest.Content |ConvertFrom-Json
+    $groups += $raw
+    $page++
+
+} while ($raw.Count -gt 0)
+
+
+foreach($g in $groups)
+{
+    $Object = New-Object PSObject -Property @{            
+        id              = $g.id               
+        name            = $g.full_name
+        lastmessage     = $g.stats.last_message_at
+        members         = $g.stats.members
+    }           
+
+    $groupinfo += $Object
+}
+
+$groupinfo
+
+foreach($grouptomove in $migrategroups)
+{
+    $GroupIdUpper = $groupinfo -match $grouptomove
+    $GroupIdUpper
+    $GroupId = $GroupIdUpper.id
     $GroupCycle = 1
     $GroupCount = 0
     $YammerMessages = @()
@@ -55,7 +91,7 @@ foreach($group in $groups)
     }	
     While (($json.messages.Count -gt 0) -and (!$datelimit)) 
     Write-Host "GROUP MESSAGE COUNT" $GroupCount
-    $exportname = "..\Exports\"+$group+".csv"
+    $exportname = "..\Exports\"+$grouptomove+".csv"
 
     $YammerMessages |Export-Csv $exportname -NoTypeInformation 
 }
