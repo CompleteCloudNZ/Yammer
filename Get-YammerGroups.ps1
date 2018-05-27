@@ -1,4 +1,4 @@
- . ..\Yammer-Token.ps1
+ . ..\New-Yammer-Token.ps1
 $yammerBaseUrl = "https://www.yammer.com/api/v1"
 
 Function Get-BaererToken() {
@@ -26,7 +26,6 @@ do
 
 } while ($raw.Count -gt 0)
 
-
 foreach($g in $groups)
 {
     $Object = New-Object PSObject -Property @{            
@@ -39,5 +38,5 @@ foreach($g in $groups)
     $groupinfo += $Object
 }
 
-$groupinfo |Sort-Object lastmessage |Export-Csv ..\Exports\group-stats.Csv
+$groupinfo |Export-Csv ..\Exports\new-group-stats.Csv -NoTypeInformation
 

@@ -5,7 +5,7 @@
  #  Good resources to review: http://www.nubo.eu/en/blog/
  #>
  
- . ..\Yammer-Token.ps1
+ . ..\New-Yammer-Token.ps1
 $yammerBaseUrl = "https://www.yammer.com/api/v1"
 
 $allUsers = @()
@@ -18,7 +18,7 @@ Function Get-BaererToken() {
 
 $page = 1
 
-while($allUsers.Count % 50 -eq 0)
+do
 {
     $urlToCall = "$($yammerBaseUrl)/users.json"
     $urlToCall += "?page=" + $page;
@@ -49,6 +49,7 @@ while($allUsers.Count % 50 -eq 0)
     }
     $page++
     #$results
-}
+    $results.Length
+} while($results.Length -eq 50)
 
-$allUsers | Export-Csv .\users.csv
+$allUsers | Export-Csv ..\Exports\new-users.csv
