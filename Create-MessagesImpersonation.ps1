@@ -3,6 +3,8 @@ $yammerBaseUrl = "https://www.yammer.com/api/v1"
 
 $yammerClientId = "S1K1azXDbHohh28qVvh4Ag"
 
+
+
 Function Get-BaererToken() {
     $headers = @{ Authorization=("Bearer " + $baererToken) }
     return $headers
@@ -14,11 +16,19 @@ Function Get-UserBaererToken($token) {
 }
 
 $headers = Get-BaererToken
+$usermatrix = import-Csv ..\exports\matrix-users.csv
+$groupmatrix = Import-Csv ..\Exports\matrix-groups.csv
+$exportfile = Import-Csv ..\Exports\dataexports\Messagesjan-feb.csv
 
-$testID = "1674082976"
-$testGroupID = "15016680"
+$messagematrix = @()
 
-# ==============================================================
+foreach($message in $exportfile)
+{
+    $message
+}
+
+
+<# ==============================================================
 # 2 – get the user details, esp. the TOKEN
 
 # https://www.yammer.com/api/v1/oauth/tokens.json?consumer_key={0}&user_id={1}
@@ -84,3 +94,4 @@ Invoke-WebRequest -Uri $Uri -Method Post -Headers $userheaders -Body $userBody
 
 #$returnValues = $yammerXml3.response.Id + "|" + $yammerXml3.response.Name
 
+#>

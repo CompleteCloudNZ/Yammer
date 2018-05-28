@@ -93,5 +93,5 @@ foreach($grouptomove in $migrategroups)
     Write-Host "GROUP MESSAGE COUNT" $GroupCount
     $exportname = "..\Exports\"+$grouptomove+".csv"
 
-    $YammerMessages |Export-Csv $exportname -NoTypeInformation 
+    $YammerMessages |Export-Csv "..\Exports\message-full.csv" -NoTypeInformation -Append
 }
