@@ -66,17 +66,27 @@ $exportfiles = Import-Csv $fcsv
 
 $messagematrix = @()
 
+<<<<<<< HEAD
 <#
 
 id                      : 1008528666
 replied_to_id           :
 thread_id               : 1008528666
+=======
+
+<# Export file extract
+
+id                      : 1008609639
+replied_to_id           : 1004103082
+thread_id               : 1004092708
+>>>>>>> b39d6fb6fa6040ebc2e76f4cd3d3e68dcd127a7a
 conversation_id         :
 group_id                : 12790260
 group_name              : Sales Australia
 participants            :
 in_private_group        : false
 in_private_conversation : false
+<<<<<<< HEAD
 sender_id               : 1630855955
 sender_type             : User
 sender_name             : Rhys Pennisi - REP 143 (FAU)
@@ -256,6 +266,25 @@ Content-Type: {4}
         $_ |Out-File ..\Uncontrolled\Yammer\failure.log -Append
     }
     #>
+=======
+sender_id               : 1531175823
+sender_type             : User
+sender_name             : Donna McLean (FAU)
+sender_email            : donna.mclean@frucor.com
+body                    : And a big thank you to my little elf helper [[user:1531176302]] for her awesome shopping and wrapping g skills!! 👌🏼
+api_url                 : https://www.yammer.com/api/v1/messages/1008609639
+attachments             :
+deleted_by_id           :
+deleted_by_type         :
+created_at              : 2018-01-03T06:19:41.803Z
+deleted_at              :
+
+#>
+
+foreach($message in $exportfile)
+{
+    
+>>>>>>> b39d6fb6fa6040ebc2e76f4cd3d3e68dcd127a7a
 }
 
 
