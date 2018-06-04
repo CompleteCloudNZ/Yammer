@@ -1,4 +1,4 @@
- . ..\New-Yammer-Token.ps1
+ . ..\Yammer-Token.ps1
 $yammerBaseUrl = "https://www.yammer.com/api/v1"
 
 Function Get-BaererToken() {
@@ -33,10 +33,13 @@ foreach($g in $groups)
         name            = $g.full_name
         lastmessage     = $g.stats.last_message_at
         members         = $g.stats.members
-    }           
-
+        description     = $g.description
+        }           
+    
     $groupinfo += $Object
+    $object
+    
 }
 
-$groupinfo |Export-Csv ..\Exports\new-group-stats.Csv -NoTypeInformation
+$groupinfo |Export-Csv ..\YammerMigration\source-group-stats.Csv -NoTypeInformation
 

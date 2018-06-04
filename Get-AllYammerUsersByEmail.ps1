@@ -10,12 +10,12 @@ $userdetails = @()
 
 $headers = Get-BaererToken
 
-$users = import-csv ..\Exports\Bulk-Export-Users.csv
+$users = import-csv "C:\Temp\export-1527410982482\messages-all.csv"
+$emailaddress = $users |Select-Object sender_email -Unique
 
-foreach($user in $users)
+foreach($emailuser in $emailaddress)
 {
-
-    $urlToCall = "$($yammerBaseUrl)/users/by_email.json?email="+$user.emailaddress
+    $urlToCall = "$($yammerBaseUrl)/users/by_email.json?email="+$emailuser.sender_email
 
     Write-Host $urlToCall
     $webRequest = Invoke-WebRequest -Uri $urlToCall -Method Get -Headers $headers
@@ -26,11 +26,15 @@ foreach($user in $users)
     foreach($user in $results)
     {
         $Object = New-Object PSObject -Property @{            
-            full_name        = $results.full_name
-            id               = $results.id
+            full_name        = $user.full_name
+            id               = $user.id
+            date             = $user.activated_at
+
         }               
+        #$userdetails += $user
         $userdetails += $Object    
+        $Object
     }
 }
 
-$userdetails |Export-Csv ..\Exports\New-Export-Users.csv -NoTypeInformation
+$userdetails |Export-Csv ..\YammerMigration\dest-yammer-users.csv -NoTypeInformation

@@ -54,51 +54,20 @@ function Update-Tags($MessageBody)
 }
 
 $headers = Get-BaererToken
-$usermatrix = import-Csv ..\YammerMigration\matrix-users.csv
-$groupmatrix = Import-Csv ..\YammerMigration\matrix-groups.csv
-#$exportfile = Import-Csv ..\Exports\dataexports\Messagesjan-feb.csv
+$usermatrix = import-Csv "..\YammerMigration\matrix-users.csv"
+$groupmatrix = Import-Csv "..\YammerMigration\matrix-groups.csv"
+#$exportfile = Import-Csv ..\YammerMigration\dataexports\Messagesjan-feb.csv
 
 $mcsv = "C:\Temp\export-1527410982482\Messages-all.csv"
-$fcsv = "C:\Temp\export-1527410982482\Files-all.csv"
+$fcsv = "C:\Temp\export-1527410982482\files-all.csv"
 
 $exportmessages = Import-Csv $mcsv
 $exportfiles = Import-Csv $fcsv
 
 $messagematrix = @()
 
-<#
-
-id                      : 1008528666
-replied_to_id           :
-thread_id               : 1008528666
-conversation_id         :
-group_id                : 12790260
-group_name              : Sales Australia
-participants            :
-in_private_group        : false
-in_private_conversation : false
-sender_id               : 1630855955
-sender_type             : User
-sender_name             : Rhys Pennisi - REP 143 (FAU)
-sender_email            : rhys.pennisi@frucor.com
-body                    : CBW Express | Melbourne CBD
-
-                          V POS refresh ✅
-
-                          [Tag:22629854:vjanincentive] [[user:1531176302]]
-api_url                 : https://www.yammer.com/api/v1/messages/1008528666
-attachments             : uploadedfile:116898666
-deleted_by_id           :
-deleted_by_type         :
-created_at              : 2018-01-03T02:31:55.609Z
-deleted_at              :
-
-
-#>
 
 $messagematrixcsv = "..\YammerMigration\matrix-messages.csv"
-
-$counter = 0
 
 if (Test-Path $messagematrixcsv)
 {
@@ -115,24 +84,64 @@ if (Test-Path $messagematrixcsv)
     }
 }
 
-foreach($message in $exportmessages[3])
+Start-Transcript "..\YammerMigration\new-transcript.log"
+
+$counter = 0
+
+foreach($message in $exportmessages)
 {
+    $errormessage = $false
+    $rid = $null
     try {
         
+        if($message.group_id -eq "15047737")
+        {
+            $gid = "15047737"
+        }
+        else 
+        {
+            $gid = ($groupmatrix -match $message.group_id).new_id            
+        }
+
         $uid = ($usermatrix -match $message.sender_id).new_id
-        $gid = ($groupmatrix -match $message.group_id).new_id
         
         if(!$gid)
         {
-            throw "Tried writing to a non-group"
+            $gid = "15047737"
         }
 
         $messageBody = Update-Tags -MessageBody $message.body
+        $boundary = [guid]::NewGuid().ToString()
 
-        $rid = $messagematrix |Where-Object {$_.old_id -eq $message.replied_to_id}     
-        $headertemplate = @'
+        if($message.replied_to_id -gt 10)
+        {
+            $rid = $messagematrix |Where-Object {$_.old_id -eq $message.replied_to_id}     
+
+            $rid.id
+            if(!$rid)
+            {
+                Write-Error "Tried replying to a non-existent message" -ErrorAction Continue
+                $errormessage = $true
+            }
+
+            $headertemplate = @'
 --{0}
-Content-Disposition: form-data; name="body"
+Content-Disposition: form-data; name="body""
+
+{1}
+--{0}
+Content-Disposition: form-data; name="replied_to_id""
+
+{3}
+'@
+
+            $userBody = $headertemplate -f $boundary, $messageBody, $gid, $rid.id
+        }
+        else 
+        {
+            $headertemplate = @'
+--{0}
+Content-Disposition: form-data; name="body""
 
 {1}
 --{0}
@@ -141,29 +150,13 @@ Content-Disposition: form-data; name="group_id"
 {2}
 '@
 
-        $boundary = [guid]::NewGuid().ToString()
-        $userBody = $headertemplate -f $boundary, $messageBody, $gid, $rid.id
-
-        if($rid.id)
-        {
-            $replyid = @'
---{0}
-Content-Disposition: form-data; name="replied_to_id"
-
-{1}       
-'@
-            $userBody = $replyid -f $boundary, $rid.id
+            $userBody = $headertemplate -f $boundary, $messageBody, $gid
             
         }
-
-        
 
         $usertoken = Get-UserToken -UserID $uid
         $userheaders = Get-UserBaererToken $usertoken
 
-        Write-Host "***********"
-        $userBody
-        Write-Host "***********"
         if($message.attachments)
         {
             # break attachments down to parts if needed
@@ -177,12 +170,12 @@ Content-Disposition: form-data; name="replied_to_id"
                 $attachment
                 $files = $exportfiles |Where-Object {$_.file_id -eq $attachment}
                 $files.path
+                $enc = [System.Text.Encoding]::GetEncoding("iso-8859-1")
+
                 $path = $files.path -replace "files/","C:\Temp\export-1527410982482\files\"
                 $attachmentname = "attachment"+$count.ToString()
-                #$contenttype = [System.Web.MimeMapping]::GetMimeMapping($path)
-                $enc = [System.Text.Encoding]::GetEncoding("iso-8859-1")
+
                 $fileName = Split-Path $path -leaf
-                $path
                 $fileBin = [System.IO.File]::ReadAllBytes($path)
         
                 $attachmenttemplate = @'
@@ -208,30 +201,62 @@ Content-Type: {4}
     
         $Uri = $yammerBaseUrl+"/messages.json"
         $userBody = $footertemplate -f $userBody, $boundary
+        $counter++
 
-        #$userBody = ConvertTo-Json $userBody
-        if($message.attachments)
+        if(!$errormessage)
         {
-            #$response = Invoke-RestMethod $target -Headers $headers -Method POST -Body $requestBody -ContentType "multipart/form-data;boundary=$boundary"
-            $response = Invoke-WebRequest -Uri $Uri -Method Post -Headers $userheaders -Body $userBody -ContentType "multipart/form-data;boundary=$boundary"
+            Write-Host "Message" $counter "of" $exportmessages.Count -ForegroundColor Green
+            
+            if($message.attachments)
+            {
+                if($rid.id)
+                {
+                    Write-Host "Replying to" $rid.id "with attachments" -ForegroundColor Green
+                }
+                else 
+                {                   
+                     Write-Host "Creating message in group" $gid "with attachments" -ForegroundColor Green
 
-        }
-        else 
-        {
-            $userBody = $userBody |ConvertTo-Json
-            $response = Invoke-WebRequest -Uri $Uri -Method Post -Headers $userheaders -Body $userBody -UseBasicParsing -ContentType "application/json"
-        }
+                }
+                #$response = Invoke-RestMethod $target -Headers $headers -Method POST -Body $requestBody -ContentType "multipart/form-data;boundary=$boundary"
+                $response = Invoke-WebRequest -Uri $Uri -Method Post -Headers $userheaders -Body $userBody -ContentType "multipart/form-data;boundary=$boundary"
+    
+            }
+            else 
+            {
+                if($message.replied_to_id)
+                {
+                    Write-Host "Replying to" $rid.id "without attachments" -ForegroundColor Green
 
-        $json = $response.Content |ConvertFrom-Json
-        $json.messages.id
+                    $body = "body="+$messageBody+"&replied_to_id="+$rid.id
+                    $body
+                    $response = Invoke-WebRequest -Uri $Uri -Method Post -Headers $userheaders -Body $body 
+                }
+                else 
+                {
+                    Write-Host "Replying to" $rid.id "without attachments" -ForegroundColor Green
+
+                    $body = "body="+$messageBody+"&group_id="+$gid
+                    $response = Invoke-WebRequest -Uri $Uri -Method Post -Headers $userheaders -Body $userBody -ContentType "application/json"
     
-        $Object = New-Object PSObject -Property @{            
-            id              = $json.messages.id               
-            old_id          = $message.id                 
-        }               
-        $messagematrix += $Object 
+                }
     
-        $Object |Export-Csv $messagematrixcsv -NoTypeInformation -Append
+    
+            }
+    
+            $json = $response.Content |ConvertFrom-Json
+            $json.messages.id
+        
+            $Object = New-Object PSObject -Property @{            
+                id              = $json.messages.id               
+                old_id          = $message.id                 
+            }              
+            
+            $messagematrix += $Object 
+        
+            $Object |Export-Csv $messagematrixcsv -NoTypeInformation -Append
+    
+        }
 
         # update the messages csv in case we need to start again
         #Import-Csv $mcsv | where {$_.id -ne $message.id} | Export-Csv $mcsv -NoTypeInformation
@@ -239,14 +264,15 @@ Content-Type: {4}
     }
     catch {
         $ErrorActionPreference = "Continue"
-        $message |Out-File ..\YammerMigration\failure.log -Append
         $_
+        $message |Out-File ..\Uncontrolled\Yammer\failure.log -Append
         $_.Exception.Message # |Out-File ..\Uncontrolled\Yammer\failure.log -Append
-        $_ |Out-File ..\YammerMigration\failure.log -Append
+        $_ |Out-File ..\Uncontrolled\Yammer\failure.log -Append
     }
     #>
 }
 
+Stop-Transcript
 
 <# ==============================================================
 # 2 – get the user details, esp. the TOKEN

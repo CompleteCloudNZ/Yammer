@@ -14,24 +14,16 @@ $usermatrix = Import-Csv ..\YammerMigration\matrix-users.csv
 
 # POST https://www.yammer.com/api/v1/groups.json?name=new_group_name&private=true
 
-foreach($group in $groups)
+foreach($user in $usermatrix)
 {
-    $csvfile = "..\YammerMigration\group-users\"+$group.old_id+".csv"
-    $users = Import-Csv $csvfile
-
-    foreach($user in $users)
-    {
-        $user_id = $usermatrix |where {$_.old_id -eq $user.id}
         $Uri = "$($yammerBaseUrl)/group_memberships.json"
         Write-Host $Uri
 
-        $newid = $user_id.new_id    
+        $newid = $user.new_id    
         $userBody = @{ 
-            group_id    = $group.new_id
+            group_id    = "15047737"
             user_id     = $newid
             }
-        $userBody
+
         $response = Invoke-WebRequest -Uri $Uri -Method Post -Headers $headers -Body $userBody
-        $response    
-    }
 }

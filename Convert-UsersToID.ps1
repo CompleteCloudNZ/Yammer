@@ -1,7 +1,8 @@
-$oldusers = Import-Csv ..\Exports\Old-Users.csv
-$newnewser = Import-Csv ..\Exports\New-Export-Users.csv
+$oldusers = Import-Csv ..\YammerMigration\source-yammer-users.csv
+$newnewser = Import-Csv ..\YammerMigration\dest-yammer-users.csv
 
 $usermatrix = @()
+$count = $oldusers.Count
 
 foreach($user in $newnewser)
 {
@@ -18,6 +19,8 @@ foreach($user in $newnewser)
         new_id              = $newid.id
     }               
     $usermatrix += $Object    
+    Write-Host $count
+    $count--
 }
 
-$usermatrix | Export-Csv ..\Exports\matrix-users.csv -NoTypeInformation
+$usermatrix | Export-Csv ..\YammerMigration\matrix-users.csv -NoTypeInformation

@@ -8,7 +8,7 @@ Function Get-BaererToken() {
 
 
 $headers = Get-BaererToken
-$groups = import-csv ..\YammerMigration\matrix=groups.csv
+$groups = import-csv ..\YammerMigration\matrix-groups.csv
 
 foreach($group in $groups)
 {
@@ -19,7 +19,7 @@ foreach($group in $groups)
     {
         do
         {
-            $Uri = $yammerBaseUrl+"/users/in_group/"+$GroupId+".json?page="+$page
+            $Uri = $yammerBaseUrl+"/groups/"+$GroupId+"/members.json?page="+$page
             Write-Host ("REST API CALL : $Uri")
 
             $response = Invoke-WebRequest -Uri $Uri -Method Get -Headers $headers
@@ -35,10 +35,12 @@ foreach($group in $groups)
             Write-Host ("GROUPMEMBER COUNT : $GroupCount")
             #>
             $page++
+
+            $json
         }	
         While ($json.users.count -eq 50)
 
-        $csvfile = "..\YammerMigration\group-users\"+$group.old_id+".csv"
-        $groupUsers |export-csv $csvfile -NoTypeInformation
+        #$csvfile = "..\YammerMigration\group-admins\"+$group.old_id+".csv"
+        #$groupUsers |export-csv $csvfile -NoTypeInformation
     }
 }

@@ -21,17 +21,22 @@ do
     
     $results = $webRequest.Content | ConvertFrom-Json
     $page++
+    $results[0]
+
+    exit
 
     foreach($user in $results)
     {
-        $Object = New-Object PSObject -Property @{            
-            full_name        = $user.full_name
-            id               = $user.id
-        }
-        $users += $Object    
+            $Object = New-Object PSObject -Property @{            
+                full_name        = $user.full_name
+                id               = $user.id
+                email            = $user.email
+            }
+            $users += $Object    
+            $Object    
     }
 
     $results.Count
 } while ($results.Count -eq 50)
 
-$users |Export-Csv ..\Exports\New-Export-Users.csv -NoTypeInformation
+$users |Export-Csv ..\YammerMigration\dest-yammer-users.csv -NoTypeInformation
